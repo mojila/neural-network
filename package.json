@@ -4,6 +4,8 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "random-js": "^2.0.0"
+    "random-js": "^2.0.0",
+    "sleep": "^6.1.0",
+    "three": "^0.104.0"
   }
 }

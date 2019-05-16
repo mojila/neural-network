@@ -1,75 +1,80 @@
 const fs = require('fs')
 const { Random } = require('random-js')
 const random = new Random()
+const sleep = require('sleep')
 
 let data = fs.readFileSync(`${__dirname}/fruits.csv`).toString()
 let data_array = data.split('\n').map((d, i) => d = d.split(','))
 let data_array_headless = Array.from(data_array).slice(1, data_array.length)
 let data_array_number = Array(data_array_headless.length)
 
-// transform to number
-data_array_headless.map((d, i) => {
-    let new_numbers = Array(Array.from(d).length)
-
-    Array.from(d).map((e, j) => {
-        switch(e) {
-            case 'apel':
-                new_numbers[j] = 0
-                break
-            case 'pisang':
-                new_numbers[j] = 1
-                break
-            case 'pendek':
-                new_numbers[j] = 0
-                break
-            case 'sedang':
-                new_numbers[j] = 1
-                break
-            case 'panjang':
-                new_numbers[j] = 2
-                break
-            default:
-                Error(`expected error for new bin.`)
-                break
-        }
-    })
-
-    data_array_number[i] = new_numbers
-})
+let miu = 0.1
 
 let create_w = () => {
     let result = random.integer(-1, 1) * random.realZeroToOneInclusive()
 
-    return result === 0 
+    return result === 0
         ? create_w()
         : result
 }
 
 // AND perceptron
-let treshold = 0
-let data_array_polute = data_array_number
-let w = Array.from(Array(data_array_polute.length), (x, i) => create_w())
+let and_treshold = 0
+let and_data_array_polute = data_array_number
+let and_w = Array.from(Array(3), () => create_w())
+let and_epoch = 1
+let and_sequence = [[0, 0], [0, 1], [1, 0], [1, 1]]
+let target = [0, 0, 0, 1]
 
-console.log(w)
+// print w
+console.log('| Generate W: |')
+console.log(`${and_w}\n`)
 
-let training_and = (treshold_temporary, data_temporary, w_temporary) => {
-    Array.from(data_temporary).map((d, i) => {
-        let total = 0
+let and_data = [
+    [0, 0, 0],
+    [0, 1, 0],
+    [1, 0, 1],
+    [1, 1, 0]
+]
 
-        Array.from(d).map((e, j) => {
-            Array.from(w_temporary).map((f, k) => {
-                total += e * f
-            })
+let new_w = Array(and_w.length)
+
+let and_training = () => {
+    console.log(`Epoch -> ${and_epoch}`)
+
+    and_epoch++
+
+    let outputs = Array(and_data.length)
+    
+    and_data.map((d, i) => {
+        let output = 0
+        let summation = 0
+
+        d.map((e, j) => {
+            summation += e * and_w[j]
         })
 
-        total = total >= treshold_temporary ? 1 : 0
-        
-        // rekursif dengan w baru ketika total >= 1
-        if (total >= 1) {
+        output = summation >= and_treshold ? 1:0
 
+        let err = target[i] - output
+
+        console.log(`Summation -> ${summation} | Output -> ${output}`)
+
+        if (err !== 0) {
+            console.log(`Not fit. change w!`)
+
+            and_w.map((e, j) => {
+                new_w[j] = e + miu * d[j] * err
+            })
+
+            sleep.sleep(2)
+
+            return and_training()
         }
+
+        outputs[i] = output
     })
+    console.log(outputs, target)
 }
 
-// training_and(treshold, data_array_polute, w)
-
+and_training()
